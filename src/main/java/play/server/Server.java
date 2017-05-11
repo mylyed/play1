@@ -10,6 +10,7 @@ import java.util.concurrent.Executors;
 import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.channel.ChannelException;
 import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
+import play.Log;
 import play.Logger;
 import play.Play;
 import play.Play.Mode;
@@ -17,13 +18,14 @@ import play.libs.IO;
 import play.server.ssl.SslHttpServerPipelineFactory;
 
 public class Server {
-
+    static Log log = Log.getLog(Server.class);
     public static int httpPort;
     public static int httpsPort;
 
     public static final String PID_FILE = "server.pid";
 
     public Server(String[] args) {
+        log.i("Server初始化");
 
         System.setProperty("file.encoding", "utf-8");
         Properties p = Play.configuration;
@@ -125,8 +127,8 @@ public class Server {
             Play.fatalServerErrorOccurred();
         }
         if (Play.mode == Mode.DEV || Play.runingInTestMode()) {
-           // print this line to STDOUT - not using logger, so auto test runner will not block if logger is misconfigured (see #1222)     
-           System.out.println("~ Server is up and running");
+            // print this line to STDOUT - not using logger, so auto test runner will not block if logger is misconfigured (see #1222)
+            System.out.println("~ Server is up and running");
         }
     }
 
@@ -137,7 +139,7 @@ public class Server {
                 return a.substring(s.length());
             }
         }
-        return defaultValue; 
+        return defaultValue;
     }
 
     private static void writePID(File root) {

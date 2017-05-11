@@ -159,11 +159,14 @@ public class PlayHandler extends SimpleChannelUpstreamHandler {
             try {
                 // Reset request object and response object for the current
                 // thread.
+
+                //初始化请求和响应对象
                 Http.Request.current.set(new Http.Request());
 
                 final Response response = new Response();
                 Http.Response.current.set(response);
 
+                //解析
                 final Request request = parseRequest(ctx, nettyRequest, messageEvent);
 
                 // Buffered in memory output
@@ -181,13 +184,13 @@ public class PlayHandler extends SimpleChannelUpstreamHandler {
                     }
                 });
 
-                // Raw invocation
+                // Raw invocation 调用插件
                 boolean raw = Play.pluginCollection.rawInvocation(request, response);
                 if (raw) {
                     copyResponse(ctx, request, response, nettyRequest);
                 } else {
 
-                    // Delegate to Play framework
+                    // Delegate to Play framework-委托play框架
                     Invoker.invoke(new NettyInvocation(request, response, ctx, nettyRequest, messageEvent));
 
                 }
@@ -419,7 +422,7 @@ public class PlayHandler extends SimpleChannelUpstreamHandler {
     }
 
     protected static void writeResponse(ChannelHandlerContext ctx, Response response, HttpResponse nettyResponse,
-            HttpRequest nettyRequest) {
+                                        HttpRequest nettyRequest) {
         if (Logger.isTraceEnabled()) {
             Logger.trace("writeResponse: begin");
         }
@@ -567,6 +570,7 @@ public class PlayHandler extends SimpleChannelUpstreamHandler {
         // Remove domain and port from URI if it's present.
         if (uri.startsWith("http://") || uri.startsWith("https://")) {
             // Begins searching / after 9th character (last / of https://)
+            //为什么是9？6+ 或8+2
             int index = uri.indexOf("/", 9);
             // prevent the IndexOutOfBoundsException that was occurring
             if (index >= 0) {
@@ -575,18 +579,19 @@ public class PlayHandler extends SimpleChannelUpstreamHandler {
                 uri = "/";
             }
         }
-
+        //获取请求类型-http://tool.oschina.net/commons
         String contentType = nettyRequest.headers().get(CONTENT_TYPE);
-
+        //utf-8
         // need to get the encoding now - before the Http.Request is created
         String encoding = Play.defaultWebEncoding;
         if (contentType != null) {
+            //获取编码
             HTTP.ContentTypeWithEncoding contentTypeEncoding = HTTP.parseContentType(contentType);
             if (contentTypeEncoding.encoding != null) {
                 encoding = contentTypeEncoding.encoding;
             }
         }
-
+        //解析请求参数querystring
         int i = uri.indexOf("?");
         String querystring = "";
         String path = uri;
@@ -880,7 +885,7 @@ public class PlayHandler extends SimpleChannelUpstreamHandler {
     }
 
     public void serveStatic(RenderStatic renderStatic, ChannelHandlerContext ctx, Request request, Response response,
-            HttpRequest nettyRequest, MessageEvent e) {
+                            HttpRequest nettyRequest, MessageEvent e) {
         if (Logger.isTraceEnabled()) {
             Logger.trace("serveStatic: begin");
         }
@@ -1059,7 +1064,7 @@ public class PlayHandler extends SimpleChannelUpstreamHandler {
 
             ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
             byteStream.write(Integer.toHexString(bytes.length).getBytes());
-            byte[] crlf = new byte[] { (byte) '\r', (byte) '\n' };
+            byte[] crlf = new byte[]{(byte) '\r', (byte) '\n'};
             byteStream.write(crlf);
             byteStream.write(bytes);
             byteStream.write(crlf);
@@ -1259,7 +1264,7 @@ public class PlayHandler extends SimpleChannelUpstreamHandler {
         MessageEvent e;
 
         public WebSocketInvocation(Map<String, String> route, Http.Request request, Http.Inbound inbound, Http.Outbound outbound,
-                ChannelHandlerContext ctx, MessageEvent e) {
+                                   ChannelHandlerContext ctx, MessageEvent e) {
             this.route = route;
             this.request = request;
             this.inbound = inbound;

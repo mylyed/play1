@@ -68,38 +68,35 @@ import play.vfs.VirtualFile;
 /**
  * Application controller support: The controller receives input and initiates a
  * response by making calls on model objects.
- *
+ * <p>
  * This is the class that your controllers should extend.
- *
  */
 public class Controller implements ControllerSupport, LocalVariablesSupport {
 
     /**
      * The current HTTP request: the message sent by the client to the server.
-     *
+     * <p>
      * Note: The ControllersEnhancer makes sure that an appropriate thread local
      * version is applied. ie : controller.request -
      * controller.request.current()
-     *
      */
     protected static Http.Request request = null;
     /**
      * The current HTTP response: The message sent back from the server after a
      * request.
-     *
+     * <p>
      * Note: The ControllersEnhancer makes sure that an appropriate thread local
      * version is applied. ie : controller.response -
      * controller.response.current()
-     *
      */
     protected static Http.Response response = null;
     /**
      * The current HTTP session. The Play! session is not living on the server
      * side but on the client side. In fact, it is stored in a signed cookie.
      * This session is therefore limited to 4kb.
-     *
+     * <p>
      * From Wikipedia:
-     *
+     * <p>
      * Client-side sessions use cookies and cryptographic techniques to maintain
      * state without storing as much data on the server. When presenting a
      * dynamic web page, the server sends the current state data to the client
@@ -126,7 +123,7 @@ public class Controller implements ControllerSupport, LocalVariablesSupport {
      * for more session data, the server may compress the data before creating
      * the cookie, decompressing it later when the cookie is returned by the
      * client.
-     *
+     * <p>
      * Note: The ControllersEnhancer makes sure that an appropriate thread local
      * version is applied. ie : controller.session -
      * controller.session.current()
@@ -140,9 +137,9 @@ public class Controller implements ControllerSupport, LocalVariablesSupport {
      * during the processing of the immediately following request. Once that
      * second request has been processed, those values are removed automatically
      * from the storage
-     *
+     * <p>
      * This scope is very useful to display messages after issuing a Redirect.
-     *
+     * <p>
      * Note: The ControllersEnhancer makes sure that an appropriate thread local
      * version is applied. ie : controller.flash - controller.flash.current()
      */
@@ -150,10 +147,10 @@ public class Controller implements ControllerSupport, LocalVariablesSupport {
     /**
      * The current HTTP params. This scope allows you to access the HTTP
      * parameters supplied with the request.
-     *
+     * <p>
      * This is useful for example to know which submit button a user pressed on
      * a form.
-     *
+     * <p>
      * Note: The ControllersEnhancer makes sure that an appropriate thread local
      * version is applied. ie : controller.params - controller.params.current()
      */
@@ -162,7 +159,7 @@ public class Controller implements ControllerSupport, LocalVariablesSupport {
      * The current renderArgs scope: This is a hash map that is accessible
      * during the rendering phase. It means you can access variables stored in
      * this scope during the rendering phase (the template phase).
-     *
+     * <p>
      * Note: The ControllersEnhancer makes sure that an appropriate thread local
      * version is applied. ie : controller.renderArgs -
      * controller.renderArgs.current()
@@ -173,7 +170,7 @@ public class Controller implements ControllerSupport, LocalVariablesSupport {
      * the reverse routing phase. Any variable added to this scope will be used
      * for reverse routing. Useful when you have a param that you want to add to
      * any route without add it explicitly to every action method.
-     *
+     * <p>
      * Note: The ControllersEnhancer makes sure that an appropriate thread local
      * version is applied. ie : controller.routeArgs -
      * controller.routeArgs.current()
@@ -182,7 +179,7 @@ public class Controller implements ControllerSupport, LocalVariablesSupport {
     /**
      * The current Validation object. It allows you to validate objects and to
      * retrieve potential validations errors for those objects.
-     *
+     * <p>
      * Note: The ControllersEnhancer makes sure that an appropriate thread local
      * version is applied. ie : controller.validation -
      * controller.validation.current()
@@ -197,8 +194,7 @@ public class Controller implements ControllerSupport, LocalVariablesSupport {
     /**
      * Return a 200 OK text/plain response
      *
-     * @param text
-     *            The response content
+     * @param text The response content
      */
     protected static void renderText(Object text) {
         throw new RenderText(text == null ? "" : text.toString());
@@ -207,8 +203,7 @@ public class Controller implements ControllerSupport, LocalVariablesSupport {
     /**
      * Return a 200 OK text/html response
      *
-     * @param html
-     *            The response content
+     * @param html The response content
      */
     protected static void renderHtml(Object html) {
         throw new RenderHtml(html == null ? "" : html.toString());
@@ -217,10 +212,8 @@ public class Controller implements ControllerSupport, LocalVariablesSupport {
     /**
      * Return a 200 OK text/plain response
      *
-     * @param pattern
-     *            The response content to be formatted (with String.format)
-     * @param args
-     *            Args for String.format
+     * @param pattern The response content to be formatted (with String.format)
+     * @param args    Args for String.format
      */
     protected static void renderText(CharSequence pattern, Object... args) {
         throw new RenderText(pattern == null ? "" : String.format(pattern.toString(), args));
@@ -229,8 +222,7 @@ public class Controller implements ControllerSupport, LocalVariablesSupport {
     /**
      * Return a 200 OK text/xml response
      *
-     * @param xml
-     *            The XML string
+     * @param xml The XML string
      */
     protected static void renderXml(String xml) {
         throw new RenderXml(xml);
@@ -239,8 +231,7 @@ public class Controller implements ControllerSupport, LocalVariablesSupport {
     /**
      * Return a 200 OK text/xml response
      *
-     * @param xml
-     *            The DOM document object
+     * @param xml The DOM document object
      */
     protected static void renderXml(Document xml) {
         throw new RenderXml(xml);
@@ -250,8 +241,7 @@ public class Controller implements ControllerSupport, LocalVariablesSupport {
      * Return a 200 OK text/xml response. Use renderXml(Object, XStream) to
      * customize the result.
      *
-     * @param o
-     *            the object to serialize
+     * @param o the object to serialize
      */
     protected static void renderXml(Object o) {
         throw new RenderXml(o);
@@ -260,11 +250,9 @@ public class Controller implements ControllerSupport, LocalVariablesSupport {
     /**
      * Return a 200 OK text/xml response
      *
-     * @param o
-     *            the object to serialize
-     * @param xstream
-     *            the XStream object to use for serialization. See XStream's
-     *            documentation for details about customizing the output.
+     * @param o       the object to serialize
+     * @param xstream the XStream object to use for serialization. See XStream's
+     *                documentation for details about customizing the output.
      */
     protected static void renderXml(Object o, XStream xstream) {
         throw new RenderXml(o, xstream);
@@ -274,8 +262,7 @@ public class Controller implements ControllerSupport, LocalVariablesSupport {
      * Return a 200 OK application/binary response. Content is fully loaded in
      * memory, so it should not be used with large data.
      *
-     * @param is
-     *            The stream to copy
+     * @param is The stream to copy
      */
     protected static void renderBinary(InputStream is) {
         throw new RenderBinary(is, null, true);
@@ -284,10 +271,8 @@ public class Controller implements ControllerSupport, LocalVariablesSupport {
     /**
      * Return a 200 OK application/binary response. Content is streamed.
      *
-     * @param is
-     *            The stream to copy
-     * @param length
-     *            Stream's size in bytes.
+     * @param is     The stream to copy
+     * @param length Stream's size in bytes.
      */
     protected static void renderBinary(InputStream is, long length) {
         throw new RenderBinary(is, null, length, true);
@@ -298,10 +283,8 @@ public class Controller implements ControllerSupport, LocalVariablesSupport {
      * attachment. Content is fully loaded in memory, so it should not be used
      * with large data.
      *
-     * @param is
-     *            The stream to copy
-     * @param name
-     *            Name of file user is downloading.
+     * @param is   The stream to copy
+     * @param name Name of file user is downloading.
      */
     protected static void renderBinary(InputStream is, String name) {
         throw new RenderBinary(is, name, false);
@@ -311,12 +294,9 @@ public class Controller implements ControllerSupport, LocalVariablesSupport {
      * Return a 200 OK application/binary response with content-disposition
      * attachment.
      *
-     * @param is
-     *            The stream to copy. Content is streamed.
-     * @param name
-     *            Name of file user is downloading.
-     * @param length
-     *            Stream's size in bytes.
+     * @param is     The stream to copy. Content is streamed.
+     * @param name   Name of file user is downloading.
+     * @param length Stream's size in bytes.
      */
     protected static void renderBinary(InputStream is, String name, long length) {
         throw new RenderBinary(is, name, length, false);
@@ -327,12 +307,9 @@ public class Controller implements ControllerSupport, LocalVariablesSupport {
      * attachment. Content is fully loaded in memory, so it should not be used
      * with large data.
      *
-     * @param is
-     *            The stream to copy
-     * @param name
-     *            Name of file user is downloading.
-     * @param inline
-     *            true to set the response Content-Disposition to inline
+     * @param is     The stream to copy
+     * @param name   Name of file user is downloading.
+     * @param inline true to set the response Content-Disposition to inline
      */
     protected static void renderBinary(InputStream is, String name, boolean inline) {
         throw new RenderBinary(is, name, inline);
@@ -342,14 +319,10 @@ public class Controller implements ControllerSupport, LocalVariablesSupport {
      * Return a 200 OK application/binary response with content-disposition
      * attachment.
      *
-     * @param is
-     *            The stream to copy
-     * @param name
-     *            The attachment name
-     * @param length
-     *            Stream's size in bytes.
-     * @param inline
-     *            true to set the response Content-Disposition to inline
+     * @param is     The stream to copy
+     * @param name   The attachment name
+     * @param length Stream's size in bytes.
+     * @param inline true to set the response Content-Disposition to inline
      */
     protected static void renderBinary(InputStream is, String name, long length, boolean inline) {
         throw new RenderBinary(is, name, length, inline);
@@ -360,14 +333,10 @@ public class Controller implements ControllerSupport, LocalVariablesSupport {
      * attachment. Content is fully loaded in memory, so it should not be used
      * with large data.
      *
-     * @param is
-     *            The stream to copy
-     * @param name
-     *            The attachment name
-     * @param contentType
-     *            The content type of the attachment
-     * @param inline
-     *            true to set the response Content-Disposition to inline
+     * @param is          The stream to copy
+     * @param name        The attachment name
+     * @param contentType The content type of the attachment
+     * @param inline      true to set the response Content-Disposition to inline
      */
     protected static void renderBinary(InputStream is, String name, String contentType, boolean inline) {
         throw new RenderBinary(is, name, contentType, inline);
@@ -377,16 +346,11 @@ public class Controller implements ControllerSupport, LocalVariablesSupport {
      * Return a 200 OK application/binary response with content-disposition
      * attachment.
      *
-     * @param is
-     *            The stream to copy
-     * @param name
-     *            The attachment name
-     * @param length
-     *            Content's byte size.
-     * @param contentType
-     *            The content type of the attachment
-     * @param inline
-     *            true to set the response Content-Disposition to inline
+     * @param is          The stream to copy
+     * @param name        The attachment name
+     * @param length      Content's byte size.
+     * @param contentType The content type of the attachment
+     * @param inline      true to set the response Content-Disposition to inline
      */
     protected static void renderBinary(InputStream is, String name, long length, String contentType, boolean inline) {
         throw new RenderBinary(is, name, length, contentType, inline);
@@ -395,8 +359,7 @@ public class Controller implements ControllerSupport, LocalVariablesSupport {
     /**
      * Return a 200 OK application/binary response
      *
-     * @param file
-     *            The file to copy
+     * @param file The file to copy
      */
     protected static void renderBinary(File file) {
         throw new RenderBinary(file);
@@ -406,10 +369,8 @@ public class Controller implements ControllerSupport, LocalVariablesSupport {
      * Return a 200 OK application/binary response with content-disposition
      * attachment
      *
-     * @param file
-     *            The file to copy
-     * @param name
-     *            The attachment name
+     * @param file The file to copy
+     * @param name The attachment name
      */
     protected static void renderBinary(File file, String name) {
         throw new RenderBinary(file, name);
@@ -418,8 +379,7 @@ public class Controller implements ControllerSupport, LocalVariablesSupport {
     /**
      * Render a 200 OK application/json response
      *
-     * @param jsonString
-     *            The JSON string
+     * @param jsonString The JSON string
      */
     protected static void renderJSON(String jsonString) {
         throw new RenderJson(jsonString);
@@ -428,8 +388,7 @@ public class Controller implements ControllerSupport, LocalVariablesSupport {
     /**
      * Render a 200 OK application/json response
      *
-     * @param o
-     *            The Java object to serialize
+     * @param o The Java object to serialize
      */
     protected static void renderJSON(Object o) {
         throw new RenderJson(o);
@@ -438,10 +397,8 @@ public class Controller implements ControllerSupport, LocalVariablesSupport {
     /**
      * Render a 200 OK application/json response
      *
-     * @param o
-     *            The Java object to serialize
-     * @param type
-     *            The Type information for complex generic types
+     * @param o    The Java object to serialize
+     * @param type The Type information for complex generic types
      */
     protected static void renderJSON(Object o, Type type) {
         throw new RenderJson(o, type);
@@ -450,11 +407,9 @@ public class Controller implements ControllerSupport, LocalVariablesSupport {
     /**
      * Render a 200 OK application/json response.
      *
-     * @param o
-     *            The Java object to serialize
-     * @param adapters
-     *            A set of GSON serializers/deserializers/instance creator to
-     *            use
+     * @param o        The Java object to serialize
+     * @param adapters A set of GSON serializers/deserializers/instance creator to
+     *                 use
      */
     protected static void renderJSON(Object o, JsonSerializer<?>... adapters) {
         throw new RenderJson(o, adapters);
@@ -463,10 +418,8 @@ public class Controller implements ControllerSupport, LocalVariablesSupport {
     /**
      * Render a 200 OK application/json response.
      *
-     * @param o
-     *            The Java object to serialize
-     * @param gson
-     *            The GSON serializer object use
+     * @param o    The Java object to serialize
+     * @param gson The GSON serializer object use
      */
     protected static void renderJSON(Object o, Gson gson) {
         throw new RenderJson(o, gson);
@@ -496,8 +449,7 @@ public class Controller implements ControllerSupport, LocalVariablesSupport {
     /**
      * Send a 401 Unauthorized response
      *
-     * @param realm
-     *            The realm name
+     * @param realm The realm name
      */
     protected static void unauthorized(String realm) {
         throw new Unauthorized(realm);
@@ -513,8 +465,7 @@ public class Controller implements ControllerSupport, LocalVariablesSupport {
     /**
      * Send a 404 Not Found response
      *
-     * @param what
-     *            The Not Found resource name
+     * @param what The Not Found resource name
      */
     protected static void notFound(String what) {
         throw new NotFound(what);
@@ -537,8 +488,7 @@ public class Controller implements ControllerSupport, LocalVariablesSupport {
     /**
      * Send a 404 Not Found response if object is null
      *
-     * @param o
-     *            The object to check
+     * @param o The object to check
      */
     protected static void notFoundIfNull(Object o) {
         if (o == null) {
@@ -549,10 +499,8 @@ public class Controller implements ControllerSupport, LocalVariablesSupport {
     /**
      * Send a 404 Not Found response if object is null
      *
-     * @param o
-     *            The object to check
-     * @param what
-     *            The Not Found resource name
+     * @param o    The object to check
+     * @param what The Not Found resource name
      */
     protected static void notFoundIfNull(Object o, String what) {
         if (o == null) {
@@ -582,8 +530,7 @@ public class Controller implements ControllerSupport, LocalVariablesSupport {
     /**
      * Send a 403 Forbidden response
      *
-     * @param reason
-     *            The reason
+     * @param reason The reason
      */
     protected static void forbidden(String reason) {
         throw new Forbidden(reason);
@@ -599,10 +546,8 @@ public class Controller implements ControllerSupport, LocalVariablesSupport {
     /**
      * Send a 5xx Error response
      *
-     * @param status
-     *            The exact status code
-     * @param reason
-     *            The reason
+     * @param status The exact status code
+     * @param reason The reason
      */
     protected static void error(int status, String reason) {
         throw new Error(status, reason);
@@ -611,8 +556,7 @@ public class Controller implements ControllerSupport, LocalVariablesSupport {
     /**
      * Send a 500 Error response
      *
-     * @param reason
-     *            The reason
+     * @param reason The reason
      */
     protected static void error(String reason) {
         throw new Error(reason);
@@ -621,8 +565,7 @@ public class Controller implements ControllerSupport, LocalVariablesSupport {
     /**
      * Send a 500 Error response
      *
-     * @param reason
-     *            The reason
+     * @param reason The reason
      */
     protected static void error(Exception reason) {
         Logger.error(reason, "error()");
@@ -639,10 +582,8 @@ public class Controller implements ControllerSupport, LocalVariablesSupport {
     /**
      * Add a value to the flash scope
      *
-     * @param key
-     *            The key
-     * @param value
-     *            The value
+     * @param key   The key
+     * @param value The value
      */
     protected static void flash(String key, Object value) {
         Scope.Flash.current().put(key, value);
@@ -651,8 +592,7 @@ public class Controller implements ControllerSupport, LocalVariablesSupport {
     /**
      * Send a 302 redirect response.
      *
-     * @param url
-     *            The Location to redirect
+     * @param url The Location to redirect
      */
     protected static void redirect(String url) {
         redirect(url, false);
@@ -661,8 +601,7 @@ public class Controller implements ControllerSupport, LocalVariablesSupport {
     /**
      * Send a 302 redirect response.
      *
-     * @param file
-     *            The Location to redirect
+     * @param file The Location to redirect
      */
     protected static void redirectToStatic(String file) {
         try {
@@ -684,10 +623,8 @@ public class Controller implements ControllerSupport, LocalVariablesSupport {
     /**
      * Send a Redirect response.
      *
-     * @param url
-     *            The Location to redirect
-     * @param permanent
-     *            true -&gt; 301, false -&gt; 302
+     * @param url       The Location to redirect
+     * @param permanent true -&gt; 301, false -&gt; 302
      */
     protected static void redirect(String url, boolean permanent) {
         if (url.indexOf("/") == -1) { // fix Java !
@@ -699,10 +636,8 @@ public class Controller implements ControllerSupport, LocalVariablesSupport {
     /**
      * 302 Redirect to another action
      *
-     * @param action
-     *            The fully qualified action name (ex: Application.index)
-     * @param args
-     *            Method arguments
+     * @param action The fully qualified action name (ex: Application.index)
+     * @param args   Method arguments
      */
     public static void redirect(String action, Object... args) {
         redirect(action, false, args);
@@ -711,12 +646,9 @@ public class Controller implements ControllerSupport, LocalVariablesSupport {
     /**
      * Redirect to another action
      *
-     * @param action
-     *            The fully qualified action name (ex: Application.index)
-     * @param permanent
-     *            true -&gt; 301, false -&gt; 302
-     * @param args
-     *            Method arguments
+     * @param action    The fully qualified action name (ex: Application.index)
+     * @param permanent true -&gt; 301, false -&gt; 302
+     * @param args      Method arguments
      */
     protected static void redirect(String action, boolean permanent, Object... args) {
         try {
@@ -797,10 +729,8 @@ public class Controller implements ControllerSupport, LocalVariablesSupport {
     /**
      * Render a specific template
      *
-     * @param templateName
-     *            The template name
-     * @param args
-     *            The template data
+     * @param templateName The template name
+     * @param args         The template data
      */
     protected static void renderTemplate(String templateName, Object... args) {
         // Template datas
@@ -817,10 +747,8 @@ public class Controller implements ControllerSupport, LocalVariablesSupport {
     /**
      * Render a specific template.
      *
-     * @param templateName
-     *            The template name.
-     * @param args
-     *            The template data.
+     * @param templateName The template name.
+     * @param args         The template data.
      */
     protected static void renderTemplate(String templateName, Map<String, Object> args) {
         // Template datas
@@ -853,8 +781,7 @@ public class Controller implements ControllerSupport, LocalVariablesSupport {
      * Render the template corresponding to the action's package-class-method
      * name (@see <code>template()</code>).
      *
-     * @param args
-     *            The template data.
+     * @param args The template data.
      */
     protected static void renderTemplate(Map<String, Object> args) {
         renderTemplate(template(), args);
@@ -863,8 +790,7 @@ public class Controller implements ControllerSupport, LocalVariablesSupport {
     /**
      * Render the corresponding template (@see <code>template()</code>).
      *
-     * @param args
-     *            The template data
+     * @param args The template data
      */
     protected static void render(Object... args) {
         String templateName = null;
@@ -879,6 +805,8 @@ public class Controller implements ControllerSupport, LocalVariablesSupport {
     /**
      * Work out the default template to load for the invoked action. E.g.
      * "controllers.Pages.index" returns "views/Pages/index.html".
+     * <p>
+     * 当我们用render方法，没有写模版名称时，在play.mvc。Controller:template()方法中play会依据request中action名称等参数构建template路径。
      */
     protected static String template() {
         Request theRequest = Request.current();
@@ -914,8 +842,7 @@ public class Controller implements ControllerSupport, LocalVariablesSupport {
     /**
      * Retrieve annotation for the action method
      *
-     * @param clazz
-     *            The annotation class
+     * @param clazz The annotation class
      * @return Annotation object or null if not found
      */
     protected static <T extends Annotation> T getActionAnnotation(Class<T> clazz) {
@@ -929,8 +856,7 @@ public class Controller implements ControllerSupport, LocalVariablesSupport {
     /**
      * Retrieve annotation for the controller class
      *
-     * @param clazz
-     *            The annotation class
+     * @param clazz The annotation class
      * @return Annotation object or null if not found
      */
     protected static <T extends Annotation> T getControllerAnnotation(Class<T> clazz) {
@@ -943,8 +869,7 @@ public class Controller implements ControllerSupport, LocalVariablesSupport {
     /**
      * Retrieve annotation for the controller class
      *
-     * @param clazz
-     *            The annotation class
+     * @param clazz The annotation class
      * @return Annotation object or null if not found
      */
     protected static <T extends Annotation> T getControllerInheritedAnnotation(Class<T> clazz) {
@@ -1039,13 +964,12 @@ public class Controller implements ControllerSupport, LocalVariablesSupport {
 
     /**
      * Suspend the current request for a specified amount of time.
-     *
+     * <p>
      * <p>
      * <b>Important:</b> The method will not resume on the line after you call
      * this. The method will be called again as if there was a new HTTP request.
      *
-     * @param timeout
-     *            Period of time to wait, e.g. "1h" means 1 hour.
+     * @param timeout Period of time to wait, e.g. "1h" means 1 hour.
      */
     @Deprecated
     protected static void suspend(String timeout) {
@@ -1055,13 +979,12 @@ public class Controller implements ControllerSupport, LocalVariablesSupport {
     /**
      * Suspend the current request for a specified amount of time (in
      * milliseconds).
-     *
+     * <p>
      * <p>
      * <b>Important:</b> The method will not resume on the line after you call
      * this. The method will be called again as if there was a new HTTP request.
      *
-     * @param millis
-     *            Number of milliseconds to wait until trying again.
+     * @param millis Number of milliseconds to wait until trying again.
      */
     @Deprecated
     protected static void suspend(int millis) {
@@ -1071,7 +994,7 @@ public class Controller implements ControllerSupport, LocalVariablesSupport {
 
     /**
      * Suspend this request and wait for the task completion
-     *
+     * <p>
      * <p>
      * <b>Important:</b> The method will not resume on the line after you call
      * this. The method will be called again as if there was a new HTTP request.
@@ -1101,17 +1024,16 @@ public class Controller implements ControllerSupport, LocalVariablesSupport {
 
     /**
      * Used to store data before Continuation suspend and restore after.
-     *
+     * <p>
      * If isRestoring == null, the method will try to resolve it.
-     *
+     * <p>
      * important: when using isRestoring == null you have to KNOW that
      * continuation suspend is going to happen and that this method is called
      * twice for this single continuation suspend operation for this specific
      * request.
      *
-     * @param isRestoring
-     *            true if restoring, false if storing, and null if you don't
-     *            know
+     * @param isRestoring true if restoring, false if storing, and null if you don't
+     *                    know
      */
     private static void storeOrRestoreDataStateForContinuations(Boolean isRestoring) {
 
@@ -1279,12 +1201,12 @@ public class Controller implements ControllerSupport, LocalVariablesSupport {
 
     /**
      * @todo - this "Usage" example below doesn't make sense.
-     *
-     *       Usage:
-     *
-     *       <code>
+     * <p>
+     * Usage:
+     * <p>
+     * <code>
      * ActionDefinition action = reverse(); {
-     *     Application.anyAction(anyParam, "toto");
+     * Application.anyAction(anyParam, "toto");
      * }
      * String url = action.url;
      * </code>

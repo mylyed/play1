@@ -75,7 +75,7 @@ public class Http {
     }
 
     /**
-     * An HTTP Header
+     * An HTTP Header  为什么 value 要是list？？
      */
     public static class Header implements Serializable {
 
@@ -105,7 +105,7 @@ public class Http {
 
         /**
          * First value
-         * 
+         *
          * @return The first value
          */
         public String value() {
@@ -127,7 +127,7 @@ public class Http {
          * When creating cookie without specifying domain, this value is used.
          * Can be configured using the property
          * 'application.defaultCookieDomain' in application.conf.
-         *
+         * <p>
          * This feature can be used to allow sharing session/cookies between
          * multiple sub domains.
          */
@@ -186,7 +186,7 @@ public class Http {
         public String querystring;
         /**
          * URL path (excluding scheme, host and port), starting with '/'<br>
-         * 
+         * <p>
          * <b>Example:</b><br>
          * With this full URL <code>http://localhost:9000/path0/path1</code>
          * <br>
@@ -306,7 +306,7 @@ public class Http {
         /**
          * Deprecate the default constructor to encourage the use of
          * createRequest() when creating new requests.
-         *
+         * <p>
          * Cannot hide it with protected because we have to be backward
          * compatible with modules - ie PlayGrizzlyAdapter.java
          */
@@ -320,12 +320,12 @@ public class Http {
          * All creation / initiating of new requests should use this method. The
          * purpose of this is to "show" what is needed when creating new
          * Requests.
-         * 
+         *
          * @return the newly created Request object
          */
         public static Request createRequest(String _remoteAddress, String _method, String _path, String _querystring, String _contentType,
-                InputStream _body, String _url, String _host, boolean _isLoopback, int _port, String _domain, boolean _secure,
-                Map<String, Http.Header> _headers, Map<String, Http.Cookie> _cookies) {
+                                            InputStream _body, String _url, String _host, boolean _isLoopback, int _port, String _domain, boolean _secure,
+                                            Map<String, Http.Header> _headers, Map<String, Http.Cookie> _cookies) {
             Request newRequest = new Request();
 
             newRequest.remoteAddress = _remoteAddress;
@@ -337,7 +337,7 @@ public class Http {
             if (_contentType == null) {
                 newRequest.contentType = "text/html".intern();
             } else {
-
+                //解析编码如->Content-Type:application/json;charset=UTF-8
                 HTTP.ContentTypeWithEncoding contentTypeEncoding = HTTP.parseContentType(_contentType);
                 newRequest.contentType = contentTypeEncoding.contentType;
                 // check for encoding-info
@@ -346,7 +346,7 @@ public class Http {
                     newRequest.encoding = contentTypeEncoding.encoding;
                 }
             }
-
+            //请求正文
             newRequest.body = _body;
             newRequest.url = _url;
             newRequest.host = _host;
@@ -374,12 +374,16 @@ public class Http {
             return newRequest;
         }
 
+        /**
+         * 负载均衡
+         */
         protected void parseXForwarded() {
             String _host = this.host;
+            //
             if (Play.configuration.containsKey("XForwardedSupport") && headers.get("x-forwarded-for") != null) {
                 if (!"ALL".equalsIgnoreCase(Play.configuration.getProperty("XForwardedSupport"))
                         && !Arrays.asList(Play.configuration.getProperty("XForwardedSupport", "127.0.0.1").split("[\\s,]+"))
-                                .contains(remoteAddress)) {
+                        .contains(remoteAddress)) {
                     throw new RuntimeException("This proxy request is not authorized: " + remoteAddress);
                 } else {
                     this.secure = isRequestSecure();
@@ -407,6 +411,10 @@ public class Http {
             }
         }
 
+        /**
+         * 判断是不是 https
+         * @return
+         */
         private boolean isRequestSecure() {
             Header xForwardedProtoHeader = headers.get("x-forwarded-proto");
             Header xForwardedSslHeader = headers.get("x-forwarded-ssl");
@@ -496,7 +504,7 @@ public class Http {
 
         /**
          * Retrieve the current request
-         * 
+         *
          * @return the current request
          */
         public static Request current() {
@@ -505,7 +513,7 @@ public class Http {
 
         /**
          * Useful because we sometime use a lazy request loader
-         * 
+         *
          * @return itself
          */
         public Request get() {
@@ -525,7 +533,7 @@ public class Http {
 
         /**
          * Get the request base (ex: http://localhost:9000
-         * 
+         *
          * @return the request base of the url (protocol, host and port)
          */
         public String getBase() {
@@ -546,7 +554,7 @@ public class Http {
          * list is returned.
          *
          * @return Language codes in order of preference, e.g.
-         *         "en-us,en-gb,en,de".
+         * "en-us,en-gb,en,de".
          */
         public List<String> acceptLanguage() {
             final Pattern qpattern = Pattern.compile("q=([0-9\\.]+)");
@@ -642,7 +650,7 @@ public class Http {
 
         /**
          * Retrieve the current response
-         * 
+         *
          * @return the current response
          */
         public static Response current() {
@@ -651,9 +659,8 @@ public class Http {
 
         /**
          * Get a response header
-         * 
-         * @param name
-         *            Header name case-insensitive
+         *
+         * @param name Header name case-insensitive
          * @return the header value as a String
          */
         public String getHeader(String name) {
@@ -669,11 +676,9 @@ public class Http {
 
         /**
          * Set a response header
-         * 
-         * @param name
-         *            Header name
-         * @param value
-         *            Header value
+         *
+         * @param name  Header name
+         * @param value Header value
          */
         public void setHeader(String name, String value) {
             Header h = new Header();
@@ -691,11 +696,9 @@ public class Http {
 
         /**
          * Set a new cookie
-         * 
-         * @param name
-         *            Cookie name
-         * @param value
-         *            Cookie value
+         *
+         * @param name  Cookie name
+         * @param value Cookie value
          */
         public void setCookie(String name, String value) {
             setCookie(name, value, null, "/", null, false);
@@ -703,9 +706,8 @@ public class Http {
 
         /**
          * Removes the specified cookie with path /
-         * 
-         * @param name
-         *            cookie name
+         *
+         * @param name cookie name
          */
         public void removeCookie(String name) {
             removeCookie(name, "/");
@@ -713,11 +715,9 @@ public class Http {
 
         /**
          * Removes the cookie
-         * 
-         * @param name
-         *            cookie name
-         * @param path
-         *            cookie path
+         *
+         * @param name cookie name
+         * @param path cookie path
          */
         public void removeCookie(String name, String path) {
             setCookie(name, "", null, path, 0, false);
@@ -725,11 +725,10 @@ public class Http {
 
         /**
          * Set a new cookie that will expire in (current) + duration
-         * 
+         *
          * @param name
          * @param value
-         * @param duration
-         *            Ex: 3d
+         * @param duration Ex: 3d
          */
         public void setCookie(String name, String value, String duration) {
             setCookie(name, value, null, "/", Time.parseDuration(duration), false);
@@ -767,9 +766,8 @@ public class Http {
 
         /**
          * Add a cache-control header
-         * 
-         * @param duration
-         *            Ex: 3h
+         *
+         * @param duration Ex: 3h
          */
         public void cacheFor(String duration) {
             int maxAge = Time.parseDuration(duration);
@@ -778,9 +776,8 @@ public class Http {
 
         /**
          * Add cache-control headers
-         * 
-         * @param duration
-         *            Ex: 3h
+         *
+         * @param duration Ex: 3h
          */
         public void cacheFor(String etag, String duration, long lastModified) {
             int maxAge = Time.parseDuration(duration);
@@ -794,10 +791,9 @@ public class Http {
          * browsers don't support these features and will ignore the headers.
          * Refer to the browsers' documentation to know what versions support
          * them.
-         * 
-         * @param allowOrigin
-         *            a comma separated list of domains allowed to perform the
-         *            x-domain call, or "*" for all.
+         *
+         * @param allowOrigin a comma separated list of domains allowed to perform the
+         *                    x-domain call, or "*" for all.
          */
         public void accessControl(String allowOrigin) {
             accessControl(allowOrigin, null, false);
@@ -808,14 +804,12 @@ public class Http {
          * browsers don't support these features and will ignore the headers.
          * Refer to the browsers' documentation to know what versions support
          * them.
-         * 
-         * @param allowOrigin
-         *            a comma separated list of domains allowed to perform the
-         *            x-domain call, or "*" for all.
-         * @param allowCredentials
-         *            Let the browser send the cookies when doing a x-domain
-         *            request. Only respected by the browser if allowOrigin !=
-         *            "*"
+         *
+         * @param allowOrigin      a comma separated list of domains allowed to perform the
+         *                         x-domain call, or "*" for all.
+         * @param allowCredentials Let the browser send the cookies when doing a x-domain
+         *                         request. Only respected by the browser if allowOrigin !=
+         *                         "*"
          */
         public void accessControl(String allowOrigin, boolean allowCredentials) {
             accessControl(allowOrigin, null, allowCredentials);
@@ -826,17 +820,14 @@ public class Http {
          * browsers don't support these features and will ignore the headers.
          * Refer to the browsers' documentation to know what versions support
          * them.
-         * 
-         * @param allowOrigin
-         *            a comma separated list of domains allowed to perform the
-         *            x-domain call, or "*" for all.
-         * @param allowMethods
-         *            a comma separated list of HTTP methods allowed, or null
-         *            for all.
-         * @param allowCredentials
-         *            Let the browser send the cookies when doing a x-domain
-         *            request. Only respected by the browser if allowOrigin !=
-         *            "*"
+         *
+         * @param allowOrigin      a comma separated list of domains allowed to perform the
+         *                         x-domain call, or "*" for all.
+         * @param allowMethods     a comma separated list of HTTP methods allowed, or null
+         *                         for all.
+         * @param allowCredentials Let the browser send the cookies when doing a x-domain
+         *                         request. Only respected by the browser if allowOrigin !=
+         *                         "*"
          */
         public void accessControl(String allowOrigin, String allowMethods, boolean allowCredentials) {
             setHeader("Access-Control-Allow-Origin", allowOrigin);

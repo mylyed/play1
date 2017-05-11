@@ -54,6 +54,7 @@ public class Play {
             return this == PROD;
         }
     }
+
     /**
      * Is the application initialized
      */
@@ -182,6 +183,9 @@ public class Play {
      */
     public static boolean standalonePlayServer = true;
 
+
+    static Log log = Log.getLog(Play.class);
+
     /**
      * Init the framework
      *
@@ -189,6 +193,8 @@ public class Play {
      * @param id   The framework id to use
      */
     public static void init(File root, String id) {
+        log.i("Play初始化 开始");
+        log.i("roof File->" + root.getAbsolutePath() + " id->" + id);
         // Simple things
         Play.id = id;
         Play.started = false;
@@ -209,7 +215,7 @@ public class Play {
         String logLevel = configuration.getProperty("application.log", "INFO");
 
         //only override log-level if Logger was not configured manually
-        if( !Logger.configuredManually) {
+        if (!Logger.configuredManually) {
             Logger.setUp(logLevel);
         }
         Logger.recordCaller = Boolean.parseBoolean(configuration.getProperty("application.log.recordCaller", "false"));
@@ -221,15 +227,17 @@ public class Play {
             Logger.debug("No tmp folder will be used (play.tmp is set to none)");
         } else {
             tmpDir = new File(configuration.getProperty("play.tmp", "tmp"));
+
             if (!tmpDir.isAbsolute()) {
                 tmpDir = new File(applicationPath, tmpDir.getPath());
             }
-
+            log.i("tmp目录->" + tmpDir.getAbsolutePath());
             if (Logger.isTraceEnabled()) {
                 Logger.trace("Using %s as tmp dir", Play.tmpDir);
             }
 
             if (!tmpDir.exists()) {
+                //tmp文件夹不存在->创建文件夹
                 try {
                     if (readOnlyTmp) {
                         throw new Exception("ReadOnly tmp");
@@ -245,11 +253,12 @@ public class Play {
         // Mode
         try {
             mode = Mode.valueOf(configuration.getProperty("application.mode", "DEV").toUpperCase());
+            log.i("运行模式—>" + mode.name());
         } catch (IllegalArgumentException e) {
             Logger.error("Illegal mode '%s', use either prod or dev", configuration.getProperty("application.mode"));
             fatalServerErrorOccurred();
         }
-        
+
         // Force the Production mode if forceProd or precompile is activate
         // Set to the Prod mode must be done before loadModules call
         // as some modules (e.g. DocViewer) is only available in DEV
@@ -262,9 +271,11 @@ public class Play {
 
         // Build basic java source path
         VirtualFile appRoot = VirtualFile.open(applicationPath);
+        log.i("appRoot->" + appRoot.getRealFile().getAbsolutePath());
+
         roots.clear();
         roots.add(appRoot);
-        
+
         javaPath.clear();
         javaPath.add(appRoot.child("app"));
         javaPath.add(appRoot.child("conf"));
@@ -273,10 +284,13 @@ public class Play {
         templatesPath.clear();
         if (appRoot.child("app/views").exists() || (usePrecompiled && appRoot.child("precompiled/templates/app/views").exists())) {
             templatesPath.add(appRoot.child("app/views"));
+            log.i("设置模板地址->" + templatesPath.toString());
         }
-        
+
         // Main route file
+        //路由表文件
         routes = appRoot.child("conf/routes");
+        log.i("路由表文件->" + routes.toString());
 
         // Plugin route files
         modulesRoutes.clear();
@@ -288,6 +302,7 @@ public class Play {
         templatesPath.add(VirtualFile.open(new File(frameworkPath, "framework/templates")));
 
         // Enable a first classloader
+        log.i("类装载器->ApplicationClassloader");
         classloader = new ApplicationClassloader();
 
         // Fix ctxPath
@@ -297,7 +312,7 @@ public class Play {
 
         // Default cookie domain
         Http.Cookie.defaultDomain = configuration.getProperty("application.defaultCookieDomain", null);
-        if (Http.Cookie.defaultDomain!=null) {
+        if (Http.Cookie.defaultDomain != null) {
             Logger.info("Using default cookie domain: " + Http.Cookie.defaultDomain);
         }
 
@@ -312,6 +327,7 @@ public class Play {
                 return;
             }
         } else {
+            log.i("开发模式");
             Logger.warn("You're running Play! in DEV mode");
         }
 
@@ -319,18 +335,23 @@ public class Play {
         pluginCollection.onApplicationReady();
 
         Play.initialized = true;
+        log.i("Play初始化 结束");
     }
 
     public static void guessFrameworkPath() {
+        log.i("guessFrameworkPath-开始");
         // Guess the framework path
         try {
             URL versionUrl = Play.class.getResource("/play/version");
             // Read the content of the file
             Play.version = new LineNumberReader(new InputStreamReader(versionUrl.openStream())).readLine();
-
+            log.i("play的版本->" + Play.version);
             // This is used only by the embedded server (Mina, Netty, Jetty etc)
             URI uri = new URI(versionUrl.toString().replace(" ", "%20"));
+            log.i(uri.toString() + "  Scheme->" + uri.getScheme());
             if (frameworkPath == null || !frameworkPath.exists()) {
+                //jar:file:/D:/dev/play-1.4.4/framework/play-1.4.4.jar!/play/version
+                //Scheme->jar
                 if (uri.getScheme().equals("jar")) {
                     String jarPath = uri.getSchemeSpecificPart().substring(5, uri.getSchemeSpecificPart().lastIndexOf("!"));
                     frameworkPath = new File(jarPath).getParentFile().getParentFile().getAbsoluteFile();
@@ -339,9 +360,12 @@ public class Play {
                 } else {
                     throw new UnexpectedException("Cannot find the Play! framework - trying with uri: " + uri + " scheme " + uri.getScheme());
                 }
+                log.i("frameworkPath->" + frameworkPath.getAbsolutePath());
             }
         } catch (Exception e) {
             throw new UnexpectedException("Where is the framework ?", e);
+        } finally {
+            log.i("guessFrameworkPath-结束");
         }
     }
 
@@ -349,42 +373,55 @@ public class Play {
      * Read application.conf and resolve overridden key using the play id mechanism.
      */
     public static void readConfiguration() {
+        log.i("readConfiguration-开始");
         confs = new HashSet<>();
         configuration = readOneConfigurationFile("application.conf");
+        configuration.forEach((k, v) -> {
+            log.i("配置文件->" + k + "=" + v);
+        });
         extractHttpPort();
         // Plugins
         pluginCollection.onConfigurationRead();
-     }
+        log.i("readConfiguration-关闭");
+    }
 
     private static void extractHttpPort() {
+        log.i("extractHttpPort-start");
         String javaCommand = System.getProperty("sun.java.command", "");
+        log.i("javaCommand->" + javaCommand);
         jregex.Matcher m = new jregex.Pattern(".* --http.port=({port}\\d+)").matcher(javaCommand);
         if (m.matches()) {
-            configuration.setProperty("http.port", m.group("port"));
+            String port = m.group("port");
+            log.i("获取到命令行设置的port->" + port);
+            configuration.setProperty("http.port", port);
+        } else {
+            log.i("命令行没有设置--http.port=端口");
         }
+        log.i("extractHttpPort-end");
     }
 
 
     private static Properties readOneConfigurationFile(String filename) {
-        Properties propsFromFile=null;
+        log.i("加载配置文件");
+        Properties propsFromFile = null;
 
         VirtualFile appRoot = VirtualFile.open(applicationPath);
-        
+
         VirtualFile conf = appRoot.child("conf/" + filename);
         if (confs.contains(conf)) {
             throw new RuntimeException("Detected recursive @include usage. Have seen the file " + filename + " before");
         }
-        
+
         try {
             propsFromFile = IO.readUtf8Properties(conf.inputstream());
         } catch (RuntimeException e) {
             if (e.getCause() instanceof IOException) {
-                Logger.fatal("Cannot read "+filename);
+                Logger.fatal("Cannot read " + filename);
                 fatalServerErrorOccurred();
             }
         }
         confs.add(conf);
-        
+
         // OK, check for instance specifics configuration
         Properties newConfiguration = new OrderSafeProperties();
         Pattern pattern = Pattern.compile("^%([a-zA-Z0-9_\\-]+)\\.(.*)$");
@@ -438,7 +475,7 @@ public class Play {
             if (key.toString().startsWith("@include.")) {
                 try {
                     String filenameToInclude = propsFromFile.getProperty(key.toString());
-                    toInclude.putAll( readOneConfigurationFile(filenameToInclude) );
+                    toInclude.putAll(readOneConfigurationFile(filenameToInclude));
                 } catch (Exception ex) {
                     Logger.warn(ex, "Missing include: %s", key);
                 }
@@ -460,7 +497,7 @@ public class Play {
                 stop();
             }
 
-            if( standalonePlayServer) {
+            if (standalonePlayServer) {
                 // Can only register shutdown-hook if running as standalone server
                 if (!shutdownHookEnabled) {
                     //registers shutdown hook - Now there's a good chance that we can notify
@@ -493,7 +530,7 @@ public class Play {
             // Configure logs
             String logLevel = configuration.getProperty("application.log", "INFO");
             //only override log-level if Logger was not configured manually
-            if( !Logger.configuredManually) {
+            if (!Logger.configuredManually) {
                 Logger.setUp(logLevel);
             }
             Logger.recordCaller = Boolean.parseBoolean(configuration.getProperty("application.log.recordCaller", "false"));
@@ -515,13 +552,13 @@ public class Play {
 
             // Default web encoding
             String _defaultWebEncoding = configuration.getProperty("application.web_encoding");
-            if( _defaultWebEncoding != null ) {
+            if (_defaultWebEncoding != null) {
                 Logger.info("Using custom default web encoding: " + _defaultWebEncoding);
                 defaultWebEncoding = _defaultWebEncoding;
                 // Must update current response also, since the request/response triggering
                 // this configuration-loading in dev-mode have already been
                 // set up with the previous encoding
-                if( Http.Response.current() != null ) {
+                if (Http.Response.current() != null) {
                     Http.Response.current().encoding = _defaultWebEncoding;
                 }
             }
@@ -563,11 +600,17 @@ public class Play {
 
         } catch (PlayException e) {
             started = false;
-            try { Cache.stop(); } catch (Exception ignored) {}
+            try {
+                Cache.stop();
+            } catch (Exception ignored) {
+            }
             throw e;
         } catch (Exception e) {
             started = false;
-            try { Cache.stop(); } catch (Exception ignored) {}
+            try {
+                Cache.stop();
+            } catch (Exception ignored) {
+            }
             throw new UnexpectedException(e);
         }
     }
@@ -637,7 +680,7 @@ public class Play {
         }
         try {
             pluginCollection.beforeDetectingChanges();
-            if(!pluginCollection.detectClassesChange()) {
+            if (!pluginCollection.detectClassesChange()) {
                 classloader.detectChanges();
             }
             Router.detectChanges(ctxPath);
@@ -651,8 +694,7 @@ public class Play {
             if (started) {
                 if (e.getCause() != null && e.getCause() != e) {
                     Logger.info("Restart: " + e.getMessage() + ", caused by: " + e.getCause());
-                }
-                else {
+                } else {
                     Logger.info("Restart: " + e.getMessage());
                 }
             }
@@ -665,15 +707,15 @@ public class Play {
 
     @SuppressWarnings("unchecked")
     public static <T> T plugin(Class<T> clazz) {
-        return (T)pluginCollection.getPluginInstance((Class<? extends PlayPlugin>)clazz);
+        return (T) pluginCollection.getPluginInstance((Class<? extends PlayPlugin>) clazz);
     }
-
 
 
     /**
      * Allow some code to run very early in Play - Use with caution !
      */
     public static void initStaticStuff() {
+        log.i("initStaticStuff-开始");
         // Play! plugings
         Enumeration<URL> urls = null;
         try {
@@ -683,10 +725,12 @@ public class Play {
         while (urls != null && urls.hasMoreElements()) {
             URL url = urls.nextElement();
             try {
+                log.i("url->" + url.toString());
                 BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream(), "utf-8"));
                 String line = null;
                 while ((line = reader.readLine()) != null) {
                     try {
+                        log.i("加载Class->" + line);
                         Class.forName(line);
                     } catch (Exception e) {
                         Logger.warn(e, "! Cannot init static: " + line);
@@ -696,6 +740,7 @@ public class Play {
                 Logger.error(ex, "Cannot load %s", url);
             }
         }
+        log.i("initStaticStuff-结束");
     }
 
     /**
@@ -709,6 +754,7 @@ public class Play {
     /**
      * Load all modules.
      * You can even specify the list using the MODULES environment variable.
+     *
      * @param appRoot : the application path virtual file
      */
     public static void loadModules(VirtualFile appRoot) {
@@ -787,24 +833,19 @@ public class Play {
     /**
      * Add a play application (as plugin)
      *
-     * @param name
-     *            : the module name
-     * @param path
-     *            The application path
+     * @param name : the module name
+     * @param path The application path
      */
     public static void addModule(String name, File path) {
         addModule(VirtualFile.open(applicationPath), name, path);
     }
-    
+
     /**
      * Add a play application (as plugin)
      *
-     * @param appRoot
-     *            : the application path virtual file
-     * @param name
-     *            : the module name
-     * @param path
-     *            The application path
+     * @param appRoot : the application path virtual file
+     * @param name    : the module name
+     * @param path    The application path
      */
     public static void addModule(VirtualFile appRoot, String name, File path) {
         VirtualFile root = VirtualFile.open(path);
@@ -847,15 +888,16 @@ public class Play {
     /**
      * Returns true if application is runing in test-mode.
      * Test-mode is resolved from the framework id.
-     *
+     * <p>
      * Your app is running in test-mode if the framwork id (Play.id)
      * is 'test' or 'test-?.*'
+     *
      * @return true if testmode
      */
-    public static boolean runingInTestMode(){
+    public static boolean runingInTestMode() {
         return id.matches("test|test-?.*");
     }
-    
+
 
     /**
      * Call this method when there has been a fatal error that Play cannot recover from

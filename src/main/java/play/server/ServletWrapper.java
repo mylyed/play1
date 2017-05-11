@@ -103,6 +103,10 @@ public class ServletWrapper extends HttpServlet implements ServletContextListene
         Play.stop();
     }
 
+    /**
+     * 加载路由表
+     * @param contextPath
+     */
     private static synchronized void loadRouter(String contextPath) {
         // Reload the rules, but this time with the context. Not really efficient through...
         // Servlet 2.4 does not allow you to get the context path from the servletcontext...
@@ -158,7 +162,7 @@ public class ServletWrapper extends HttpServlet implements ServletContextListene
             }
             serveStatic(httpServletResponse, httpServletRequest, e);
             return;
-        } catch(URISyntaxException e) {
+        } catch (URISyntaxException e) {
             serve404(httpServletRequest, httpServletResponse, new NotFound(e.toString()));
             return;
         } catch (Throwable e) {
@@ -213,7 +217,7 @@ public class ServletWrapper extends HttpServlet implements ServletContextListene
     }
 
     public static boolean isModified(String etag, String lastDate,
-            HttpServletRequest request) {
+                                     HttpServletRequest request) {
         // See section 14.26 in rfc 2616 http://www.faqs.org/rfcs/rfc2616.html
         String browserEtag = request.getHeader(IF_NONE_MATCH);
         String dateString = request.getHeader(IF_MODIFIED_SINCE);
@@ -246,9 +250,17 @@ public class ServletWrapper extends HttpServlet implements ServletContextListene
         }
     }
 
+    /**
+     * 解析请求
+     *
+     * @param httpServletRequest Servlet请求
+     * @return
+     * @throws Exception
+     */
     public static Request parseRequest(HttpServletRequest httpServletRequest) throws Exception {
 
         URI uri = new URI(httpServletRequest.getRequestURI());
+        //GET POST …………
         String method = httpServletRequest.getMethod().intern();
         String path = uri.getPath();
         String querystring = httpServletRequest.getQueryString() == null ? "" : httpServletRequest.getQueryString();
@@ -259,6 +271,8 @@ public class ServletWrapper extends HttpServlet implements ServletContextListene
         }
 
         String contentType = null;
+        //解析Content-Type
+        //http://tool.oschina.net/commons/
         if (httpServletRequest.getHeader("Content-Type") != null) {
             contentType = httpServletRequest.getHeader("Content-Type").split(";")[0].trim().toLowerCase().intern();
         } else {
@@ -266,13 +280,17 @@ public class ServletWrapper extends HttpServlet implements ServletContextListene
         }
 
         if (httpServletRequest.getHeader("X-HTTP-Method-Override") != null) {
+            //为了支持http 1.1
             method = httpServletRequest.getHeader("X-HTTP-Method-Override").intern();
         }
 
         InputStream body = httpServletRequest.getInputStream();
-        boolean secure = httpServletRequest.isSecure();
 
+        //https?
+        boolean secure = httpServletRequest.isSecure();
         String url = uri.toString() + (httpServletRequest.getQueryString() == null ? "" : "?" + httpServletRequest.getQueryString());
+
+        //解析host  hosts 是必传的
         String host = httpServletRequest.getHeader("host");
         int port = 0;
         String domain = null;
@@ -280,12 +298,15 @@ public class ServletWrapper extends HttpServlet implements ServletContextListene
             port = Integer.parseInt(host.split(":")[1]);
             domain = host.split(":")[0];
         } else {
+            //默认
             port = 80;
             domain = host;
         }
-
+        //获取客户端的IP地址
         String remoteAddress = httpServletRequest.getRemoteAddr();
 
+
+        //判断是不是127.0.0.1:端口 回环地址
         boolean isLoopback = host.matches("^127\\.0\\.0\\.1:?[0-9]*$");
 
 
@@ -307,6 +328,7 @@ public class ServletWrapper extends HttpServlet implements ServletContextListene
 
 
         Request.current.set(request);
+        //路由静态文件
         Router.routeOnlyStatic(request);
 
         return request;
@@ -451,9 +473,9 @@ public class ServletWrapper extends HttpServlet implements ServletContextListene
     public void copyResponse(Request request, Response response, HttpServletRequest servletRequest, HttpServletResponse servletResponse) throws IOException {
         String encoding = Response.current().encoding;
         if (response.contentType != null) {
-            servletResponse.setHeader("Content-Type", response.contentType + (response.contentType.startsWith("text/") ? "; charset="+encoding : ""));
+            servletResponse.setHeader("Content-Type", response.contentType + (response.contentType.startsWith("text/") ? "; charset=" + encoding : ""));
         } else {
-            servletResponse.setHeader("Content-Type", "text/plain;charset="+encoding);
+            servletResponse.setHeader("Content-Type", "text/plain;charset=" + encoding);
         }
 
         servletResponse.setStatus(response.status);
@@ -508,7 +530,7 @@ public class ServletWrapper extends HttpServlet implements ServletContextListene
 
     }
 
-    private void copyStream(HttpServletResponse servletResponse, InputStream is) throws IOException {        
+    private void copyStream(HttpServletResponse servletResponse, InputStream is) throws IOException {
         if (servletResponse != null && is != null) {
             try {
                 OutputStream os = servletResponse.getOutputStream();

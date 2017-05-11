@@ -47,16 +47,17 @@ public class Router {
     /**
      * Parse the routes file. This is called at startup.
      *
-     * @param prefix
-     *            The prefix that the path of all routes in this route file start with. This prefix should not end with
-     *            a '/' character.
+     * @param prefix The prefix that the path of all routes in this route file start with. This prefix should not end with
+     *               a '/' character.
      */
     public static void load(String prefix) {
+        //清空路由
         routes.clear();
         actionRoutesCache.clear();
         parse(Play.routes, prefix);
         lastLoading = System.currentTimeMillis();
         // Plugins
+        //加载插件的路由表
         Play.pluginCollection.onRoutesLoaded();
     }
 
@@ -131,6 +132,17 @@ public class Router {
         return getRoute(method, path, action, params, headers, null, 0);
     }
 
+    /**
+     * 生成路由对象
+     * @param method 请求方法
+     * @param path
+     * @param action
+     * @param params
+     * @param headers
+     * @param sourceFile
+     * @param line
+     * @return
+     */
     public static Route getRoute(String method, String path, String action, String params, String headers, String sourceFile, int line) {
         Route route = new Route();
         route.method = method;
@@ -138,6 +150,7 @@ public class Router {
         route.action = action;
         route.routesFile = sourceFile;
         route.routesFileLine = line;
+        //TODO 2017-05-11 18点20分
         route.addFormat(headers);
         route.addParams(params);
         route.compute();
@@ -159,11 +172,11 @@ public class Router {
      * plugin route file denoted by that <i>name</i>, if found.
      *
      * @param routeFile
-     * @param prefix
-     *            The prefix that the path of all routes in this route file start with. This prefix should not end with
-     *            a '/' character.
+     * @param prefix    The prefix that the path of all routes in this route file start with. This prefix should not end with
+     *                  a '/' character.
      */
     static void parse(VirtualFile routeFile, String prefix) {
+        //文件绝对路径
         String fileAbsolutePath = routeFile.getRealFile().getAbsolutePath();
         String content = Play.usePrecompiled ? "" : routeFile.contentAsString();
         if (Play.usePrecompiled || content.indexOf("${") > -1 || content.indexOf("#{") > -1 || content.indexOf("%{") > -1) {
@@ -173,12 +186,23 @@ public class Router {
         parse(content, prefix, fileAbsolutePath);
     }
 
+    /**
+     * 解析路由文件内容
+     *
+     * @param content
+     * @param prefix
+     * @param fileAbsolutePath
+     */
     static void parse(String content, String prefix, String fileAbsolutePath) {
         int lineNumber = 0;
         for (String line : content.split("\n")) {
             lineNumber++;
+            // GET     /logout                                 Application.logout
+            // GET(空格)/logout(空格)Application.logout
+            //去掉对于的空格
             line = line.trim().replaceAll("\\s+", " ");
             if (line.length() == 0 || line.startsWith("#")) {
+                //注释
                 continue;
             }
             Matcher matcher = routePattern.matcher(line);
@@ -201,6 +225,7 @@ public class Router {
                         Logger.error("Cannot include routes for module %s (not found)", moduleName);
                     }
                 } else {
+                    //不是module
                     String method = matcher.group("method");
                     String path = prefix + matcher.group("path");
                     String params = matcher.group("params");
@@ -208,6 +233,7 @@ public class Router {
                     appendRoute(method, path, action, params, headers, fileAbsolutePath, lineNumber);
                 }
             } else {
+                //路由规则不匹配-无效路由
                 Logger.error("Invalid route definition : %s", line);
             }
         }
@@ -219,9 +245,8 @@ public class Router {
      * <p>
      * In DEV mode, this checks each routes file's "last modified" time to see if the routes need updated.
      *
-     * @param prefix
-     *            The prefix that the path of all routes in this route file start with. This prefix should not end with
-     *            a '/' character.
+     * @param prefix The prefix that the path of all routes in this route file start with. This prefix should not end with
+     *               a '/' character.
      */
     public static void detectChanges(String prefix) {
         if (Play.mode == Mode.PROD && lastLoading > 0) {
@@ -737,6 +762,9 @@ public class Router {
         static Pattern argsPattern = new Pattern("\\{<([^>]+)>([a-zA-Z_0-9]+)\\}");
         static Pattern paramPattern = new Pattern("([a-zA-Z_0-9]+):'(.*)'");
 
+        /**
+         * 计算？
+         */
         public void compute() {
             this.host = "";
             this.hostPattern = new Pattern(".*");
@@ -891,14 +919,10 @@ public class Router {
         /**
          * Check if the parts of a HTTP request equal this Route.
          *
-         * @param method
-         *            GET/POST/etc.
-         * @param path
-         *            Part after domain and before query-string. Starts with a "/".
-         * @param accept
-         *            Format, e.g. html.
-         * @param domain
-         *            The domain (host without port).
+         * @param method GET/POST/etc.
+         * @param path   Part after domain and before query-string. Starts with a "/".
+         * @param accept Format, e.g. html.
+         * @param domain The domain (host without port).
          * @return ???
          */
         public Map<String, String> matches(String method, String path, String accept, String domain) {

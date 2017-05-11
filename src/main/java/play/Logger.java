@@ -10,6 +10,7 @@ import java.util.Properties;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
+
 import org.apache.log4j.Appender;
 import org.apache.log4j.FileAppender;
 import org.apache.log4j.PatternLayout;
@@ -24,7 +25,7 @@ import play.exceptions.PlayException;
  * Free to use from the application code.
  */
 public class Logger {
-
+    static Log log = Log.getLog(Logger.class);
     /**
      * Will force use of java.util.logging (default to try log4j first).
      */
@@ -50,12 +51,15 @@ public class Logger {
      */
     public static boolean configuredManually = false;
 
-    public static boolean usesJuli() { return forceJuli || log4j == null; }
+    public static boolean usesJuli() {
+        return forceJuli || log4j == null;
+    }
 
     /**
      * Try to init stuff.
      */
     public static void init() {
+        log.i("初始化日志工具");
         String log4jPath = Play.configuration.getProperty("application.log.path", "/log4j.xml");
         URL log4jConf = Logger.class.getResource(log4jPath);
         boolean isXMLConfig = log4jPath.endsWith(".xml");
@@ -99,6 +103,7 @@ public class Logger {
 
     /**
      * Force logger to a new level.
+     *
      * @param level TRACE,DEBUG,INFO,WARN,ERROR,FATAL
      */
     public static void setUp(String level) {
@@ -156,7 +161,7 @@ public class Logger {
             return log4j.isDebugEnabled();
         }
     }
-    
+
 
     /**
      * @return true if log4j.trace / jul.finest logging is enabled
@@ -170,7 +175,6 @@ public class Logger {
     }
 
     /**
-     *
      * @param level string representation of Logging-levels as used in log4j
      * @return true if specified logging-level is enabled
      */
@@ -179,29 +183,29 @@ public class Logger {
         org.apache.log4j.Level log4jLevel = org.apache.log4j.Level.toLevel(level);
         return isEnabledFor(log4jLevel);
     }
-    
+
     /**
-    *
-    * @param log4jLevel Logging-levels as used in log4j
-    * @return true if specified logging-level is enabled
-    */
-   public static boolean isEnabledFor(org.apache.log4j.Level log4jLevel) {
-       if (forceJuli || log4j == null) {
-           //must translate from log4j-level to jul-level
-           java.util.logging.Level julLevel = toJuliLevel(log4jLevel.toString());
-           //check level against jul
-           return juli.isLoggable(julLevel);
-       } else {
-           //check level against log4j
-           return log4j.isEnabledFor(log4jLevel);
-       }
-   }
-   
+     * @param log4jLevel Logging-levels as used in log4j
+     * @return true if specified logging-level is enabled
+     */
+    public static boolean isEnabledFor(org.apache.log4j.Level log4jLevel) {
+        if (forceJuli || log4j == null) {
+            //must translate from log4j-level to jul-level
+            java.util.logging.Level julLevel = toJuliLevel(log4jLevel.toString());
+            //check level against jul
+            return juli.isLoggable(julLevel);
+        } else {
+            //check level against log4j
+            return log4j.isEnabledFor(log4jLevel);
+        }
+    }
+
 
     /**
      * Log with TRACE level
+     *
      * @param message The message pattern
-     * @param args Pattern arguments
+     * @param args    Pattern arguments
      */
     public static void trace(String message, Object... args) {
         if (isEnabledFor(org.apache.log4j.Level.TRACE)) {
@@ -227,8 +231,9 @@ public class Logger {
 
     /**
      * Log with DEBUG level
+     *
      * @param message The message pattern
-     * @param args Pattern arguments
+     * @param args    Pattern arguments
      */
     public static void debug(String message, Object... args) {
         if (isDebugEnabled()) {
@@ -254,9 +259,10 @@ public class Logger {
 
     /**
      * Log with DEBUG level
-     * @param e the exception to log
+     *
+     * @param e       the exception to log
      * @param message The message pattern
-     * @param args Pattern arguments
+     * @param args    Pattern arguments
      */
     public static void debug(Throwable e, String message, Object... args) {
         if (isDebugEnabled()) {
@@ -286,11 +292,12 @@ public class Logger {
 
     /**
      * Log with INFO level
+     *
      * @param message The message pattern
-     * @param args Pattern arguments
+     * @param args    Pattern arguments
      */
     public static void info(String message, Object... args) {
-        if(isEnabledFor(org.apache.log4j.Level.INFO)){
+        if (isEnabledFor(org.apache.log4j.Level.INFO)) {
             if (forceJuli || log4j == null) {
                 try {
                     juli.info(format(message, args));
@@ -316,12 +323,13 @@ public class Logger {
 
     /**
      * Log with INFO level
-     * @param e the exception to log
+     *
+     * @param e       the exception to log
      * @param message The message pattern
-     * @param args Pattern arguments
+     * @param args    Pattern arguments
      */
     public static void info(Throwable e, String message, Object... args) {
-        if(isEnabledFor(org.apache.log4j.Level.INFO)){
+        if (isEnabledFor(org.apache.log4j.Level.INFO)) {
             if (forceJuli || log4j == null) {
                 try {
                     if (!niceThrowable(org.apache.log4j.Level.INFO, e, message, args)) {
@@ -348,8 +356,9 @@ public class Logger {
 
     /**
      * Log with WARN level
+     *
      * @param message The message pattern
-     * @param args Pattern arguments
+     * @param args    Pattern arguments
      */
     public static void warn(String message, Object... args) {
         if (isEnabledFor(org.apache.log4j.Level.WARN)) {
@@ -375,9 +384,10 @@ public class Logger {
 
     /**
      * Log with WARN level
-     * @param e the exception to log
+     *
+     * @param e       the exception to log
      * @param message The message pattern
-     * @param args Pattern arguments
+     * @param args    Pattern arguments
      */
     public static void warn(Throwable e, String message, Object... args) {
         if (isEnabledFor(org.apache.log4j.Level.WARN)) {
@@ -407,8 +417,9 @@ public class Logger {
 
     /**
      * Log with ERROR level
+     *
      * @param message The message pattern
-     * @param args Pattern arguments
+     * @param args    Pattern arguments
      */
     public static void error(String message, Object... args) {
         if (isEnabledFor(org.apache.log4j.Level.ERROR)) {
@@ -434,9 +445,10 @@ public class Logger {
 
     /**
      * Log with ERROR level
-     * @param e the exception to log
+     *
+     * @param e       the exception to log
      * @param message The message pattern
-     * @param args Pattern arguments
+     * @param args    Pattern arguments
      */
     public static void error(Throwable e, String message, Object... args) {
         if (isEnabledFor(org.apache.log4j.Level.ERROR)) {
@@ -466,8 +478,9 @@ public class Logger {
 
     /**
      * Log with FATAL level
+     *
      * @param message The message pattern
-     * @param args Pattern arguments
+     * @param args    Pattern arguments
      */
     public static void fatal(String message, Object... args) {
         if (isEnabledFor(org.apache.log4j.Level.FATAL)) {
@@ -493,9 +506,10 @@ public class Logger {
 
     /**
      * Log with FATAL level
-     * @param e the exception to log
+     *
+     * @param e       the exception to log
      * @param message The message pattern
-     * @param args Pattern arguments
+     * @param args    Pattern arguments
      */
     public static void fatal(Throwable e, String message, Object... args) {
         if (isEnabledFor(org.apache.log4j.Level.FATAL)) {
@@ -612,7 +626,7 @@ public class Logger {
     }
 
     /**
-     * Try to format messages using java Formatter. 
+     * Try to format messages using java Formatter.
      * Fall back to the plain message if error.
      */
     static String format(String msg, Object... args) {
@@ -661,6 +675,7 @@ public class Logger {
 
     /**
      * Examine stack trace to get caller
+     *
      * @param level method stack depth
      * @return who called the logger
      */
@@ -683,7 +698,7 @@ public class Logger {
         }
 
         static org.apache.log4j.Logger getTargetLogger(String loggerName) {
-            return loggerName != null ? org.apache.log4j.Logger.getLogger(loggerName) : org.apache.log4j.Logger.getRootLogger(); 
+            return loggerName != null ? org.apache.log4j.Logger.getLogger(loggerName) : org.apache.log4j.Logger.getRootLogger();
         }
 
         public static org.apache.log4j.Logger getTargetLogger(Class<?> clazz) {

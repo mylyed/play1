@@ -5,6 +5,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.util.Stack;
+
 import javassist.CannotCompileException;
 import javassist.CtClass;
 import javassist.CtField;
@@ -20,7 +21,20 @@ import play.classloading.ApplicationClasses.ApplicationClass;
 import play.exceptions.UnexpectedException;
 
 /**
- * Enhance controllers classes. 
+ * Enhance controllers classes.
+ * <p>
+ * 该类对controller进行增强。
+ * <p>
+ * 我们在action中，可以直接调用一些static字段，如request.getXxx(), params.get(“xxx”)。在调用时，我们知道它们是“线程安全”的，但是，为什么？要知道它们是static的，是可以被多线程同时访问的。
+ * <p>
+ * 原来ControllersEnhancer对它们进行的替换。当我们调用"params"’、 "request"、 "response"、 "session"、 "params"、 "renderArgs"、 "routeArgs"、 "validation"、 "inbound"、 "outbound"、 "flash" 这些参数时，它们都会被替换为：
+ * <p>
+ * Xxx.current()
+ * 这样的形式，从而从ThreadLocal中获取当前线程绑定的值。
+ * <p>
+ * 该类还进行了其它增强，比如当一个action被调用时要进行判断，是当作一个普通的方法调用，还是返回一个redirect的response给客户端。
+ * <p>
+ * 另外，play中render()等方法，会以抛出异常的方式判断模板层，为了保证该异常不会被其它类捕获，在这里也进行了检查和屏蔽。
  */
 public class ControllersEnhancer extends Enhancer {
 
@@ -92,9 +106,9 @@ public class ControllersEnhancer extends Enhancer {
                     try {
                         ctMethod.insertBefore(
                                 "if(play.mvc.Controller._currentReverse.get() != null) {"
-                                + "play.mvc.Controller.redirect(\"" + ctClass.getName().replace("$", "") + "." + ctMethod.getName() + "\", $args);"
-                                + generateValidReturnStatement(ctMethod.getReturnType())
-                                + "}");
+                                        + "play.mvc.Controller.redirect(\"" + ctClass.getName().replace("$", "") + "." + ctMethod.getName() + "\", $args);"
+                                        + generateValidReturnStatement(ctMethod.getReturnType())
+                                        + "}");
 
                         ctMethod.insertBefore(
                                 "((java.util.Stack)play.classloading.enhancers.ControllersEnhancer.currentAction.get()).push(\"" + ctClass.getName().replace("$", "") + "." + ctMethod.getName() + "\");");
@@ -115,9 +129,9 @@ public class ControllersEnhancer extends Enhancer {
                     try {
                         ctMethod.insertBefore(
                                 "if(!play.classloading.enhancers.ControllersEnhancer.ControllerInstrumentation.isActionCallAllowed()) {"
-                                + "play.mvc.Controller.redirect(\"" + ctClass.getName().replace("$", "") + "." + ctMethod.getName() + "\", $args);"
-                                + generateValidReturnStatement(ctMethod.getReturnType()) + "}"
-                                + "play.classloading.enhancers.ControllersEnhancer.ControllerInstrumentation.stopActionCall();");
+                                        + "play.mvc.Controller.redirect(\"" + ctClass.getName().replace("$", "") + "." + ctMethod.getName() + "\", $args);"
+                                        + generateValidReturnStatement(ctMethod.getReturnType()) + "}"
+                                        + "play.classloading.enhancers.ControllersEnhancer.ControllerInstrumentation.stopActionCall();");
 
                     } catch (Exception e) {
                         Logger.error(e, "Error in ControllersEnhancer. %s.%s has not been properly enhanced (auto-redirect).", applicationClass.name, ctMethod.getName());
@@ -194,6 +208,7 @@ public class ControllersEnhancer extends Enhancer {
         public static void stopActionCall() {
             allow.set(false);
         }
+
         static final ThreadLocal<Boolean> allow = new ThreadLocal<>();
     }
 

@@ -21,6 +21,7 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import play.Log;
 import play.Logger;
 import play.Play;
 import play.PlayPlugin;
@@ -41,16 +42,19 @@ import play.vfs.VirtualFile;
 
 /**
  * Class handling all plugins used by Play.
- *
+ * <p>
  * Loading/reloading/enabling/disabling is handled here.
- *
+ * <p>
  * This class also exposes many PlayPlugin-methods which when called, the method
  * is executed on all enabled plugins.
- *
+ * <p>
  * Since all the enabled-plugins-iteration is done here, the code elsewhere is
  * cleaner.
  */
 public class PluginCollection {
+
+    static Log log = Log.getLog(PluginCollection.class);
+
 
     /**
      * Property holding the name of the play.plugins-resource-name. Can be
@@ -95,7 +99,7 @@ public class PluginCollection {
 
     /**
      * Using readonly list to crash if someone tries to modify the copy.
-     * 
+     *
      * @param list
      * @return Read only list of plugins
      */
@@ -160,6 +164,7 @@ public class PluginCollection {
      * Enable found plugins
      */
     public void loadPlugins() {
+        log.i("加载插件 开始");
         Logger.trace("Loading plugins");
         // Play! plugins
         Enumeration<URL> urls = null;
@@ -234,7 +239,7 @@ public class PluginCollection {
 
         // Must update Play.plugins-list one last time
         updatePlayPluginsList();
-
+        log.i("加载插件 结束!!!");
     }
 
     /**
@@ -287,10 +292,10 @@ public class PluginCollection {
      * Calls plugin.onLoad but detects if plugin removes other plugins from
      * Play.plugins-list to detect if plugins disables a plugin the old hacked
      * way..
-     * 
+     *
      * @param plugin
      */
-    @SuppressWarnings({ "deprecation" })
+    @SuppressWarnings({"deprecation"})
     protected void initializePlugin(PlayPlugin plugin) {
         Logger.trace("Initializing plugin " + plugin);
         // We're ready to call onLoad for this plugin.
@@ -312,7 +317,7 @@ public class PluginCollection {
 
     /**
      * Adds one plugin and enables it
-     * 
+     *
      * @param plugin
      * @return true if plugin was new and was added
      */
@@ -380,7 +385,7 @@ public class PluginCollection {
 
     /**
      * enable plugin of specified type
-     * 
+     *
      * @return true if plugin was enabled
      */
     public boolean enablePlugin(Class<? extends PlayPlugin> pluginClazz) {
@@ -389,7 +394,7 @@ public class PluginCollection {
 
     /**
      * Returns the first instance of a loaded plugin of specified type
-     * 
+     *
      * @param pluginClazz
      * @return PlayPlugin
      */
@@ -404,7 +409,7 @@ public class PluginCollection {
 
     /**
      * disable plugin
-     * 
+     *
      * @param plugin
      * @return true if plugin was enabled and now is disabled
      */
@@ -427,7 +432,7 @@ public class PluginCollection {
 
     /**
      * disable plugin of specified type
-     * 
+     *
      * @return true if plugin was enabled and now is disabled
      */
     public boolean disablePlugin(Class<? extends PlayPlugin> pluginClazz) {
@@ -437,14 +442,14 @@ public class PluginCollection {
     /**
      * Must update Play.plugins-list to be backward compatible
      */
-    @SuppressWarnings({ "deprecation" })
+    @SuppressWarnings({"deprecation"})
     public void updatePlayPluginsList() {
         Play.plugins = Collections.unmodifiableList(getEnabledPlugins());
     }
 
     /**
      * Returns new readonly list of all enabled plugins
-     * 
+     *
      * @return List of plugins
      */
     public List<PlayPlugin> getEnabledPlugins() {
@@ -453,7 +458,7 @@ public class PluginCollection {
 
     /**
      * Returns new readonly list of all enabled plugins that define filters.
-     * 
+     *
      * @return List of plugins
      */
     public List<PlayPlugin> getEnabledPluginsWithFilters() {
@@ -473,7 +478,7 @@ public class PluginCollection {
             Iterator<PlayPlugin> itr = pluginsWithFilters.iterator();
             PlayPlugin.Filter<T> ret = itr.next().getFilter();
             while (itr.hasNext()) {
-                ret = ret.<T> decorate(itr.next().getFilter());
+                ret = ret.<T>decorate(itr.next().getFilter());
             }
             return F.Option.Some(ret);
         }
@@ -481,7 +486,7 @@ public class PluginCollection {
 
     /**
      * Returns readonly view of all enabled plugins in reversed order
-     * 
+     *
      * @return Collection of plugins
      */
     public Collection<PlayPlugin> getReversedEnabledPlugins() {
@@ -519,7 +524,7 @@ public class PluginCollection {
 
     /**
      * Returns new readonly list of all plugins
-     * 
+     *
      * @return List of plugins
      */
     public List<PlayPlugin> getAllPlugins() {
@@ -527,7 +532,6 @@ public class PluginCollection {
     }
 
     /**
-     *
      * @param plugin
      * @return true if plugin is enabled
      */
